@@ -48,16 +48,14 @@ h1{font-family:Unbounded,Inter,sans-serif;font-weight:600;font-size:clamp(28px,4
 .who b{font-weight:700;font-size:15px}
 .who span{color:var(--muted);font-size:12px;margin-top:2px}
 .lane{position:relative;height:54px;border-radius:10px;overflow:hidden;
-  background:linear-gradient(90deg,var(--free) 0 calc(var(--hour)*8),var(--over) calc(var(--hour)*8) 100%)}
+  background:var(--free)}
 .lane::before{content:"";position:absolute;inset:0;
   background-image:repeating-linear-gradient(90deg,transparent 0 calc(var(--hour) - 1px),rgba(255,255,255,.55) calc(var(--hour) - 1px) var(--hour));pointer-events:none}
 .lane::after{content:"";position:absolute;top:0;bottom:0;left:calc(var(--hour)*8);border-left:2px dashed var(--overline);opacity:.7}
 .bar{position:absolute;top:0;bottom:0;display:flex;align-items:center;padding:0 6px;color:#fff;font-weight:600;font-size:12px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-right:2px solid #fff;cursor:default;z-index:1}
 .bar.t-plan{background:var(--plan)}.bar.t-plan.alt{background:var(--plan2)}
-.bar.t-urgent{background:var(--urgent)}.bar.t-urgent.alt{background:var(--urgent2)}
-.bar.t-fix{background:var(--fix);color:var(--ink)}.bar.t-fix.alt{background:var(--fix2)}
-.bar.t-int{background:var(--int)}.bar.t-int.alt{background:var(--int2)}
+.bar{background:var(--plan)}.bar.alt{background:var(--plan2)}
 .bar.over{box-shadow:inset 0 -4px 0 rgba(208,48,31,.9)}
 .total{font-size:12px;color:var(--muted);padding:6px 2px 14px}
 .total.full{color:var(--ink);font-weight:700}.total.over{color:var(--overline);font-weight:700}
@@ -77,7 +75,7 @@ footer{color:var(--muted);font-size:12px;margin-top:18px;display:flex;justify-co
   <header>
     <div>
       <h1>Креатив · завантаження</h1>
-      <p class="sub">Смуга = години задачі. Сіре — вільний час, рожеве — понаднормово.</p>
+      <p class="sub">Смуга — задача, сіре — вільний час.</p>
     </div>
     <div class="week">
       <button class="btn icon" id="prev" aria-label="Попередній тиждень">‹</button>
@@ -92,14 +90,6 @@ footer{color:var(--muted);font-size:12px;margin-top:18px;display:flex;justify-co
 
   <section class="board">
     <div id="board"><div class="state">Завантажую дані…</div></div>
-    <div class="legend">
-      <span><i style="background:var(--plan)"></i>План</span>
-      <span><i style="background:var(--urgent)"></i>Терміново / позапланове</span>
-      <span><i style="background:var(--fix)"></i>Правки</span>
-      <span><i style="background:var(--int)"></i>Внутрішнє</span>
-      <span><i style="background:var(--free)"></i>Вільно</span>
-      <span><i style="background:var(--over)"></i>Понаднормово</span>
-    </div>
   </section>
   <footer><span id="updated"></span><span>Норма — 8 год на день, 40 год на тиждень на людину</span></footer>
 </div>
