@@ -32,6 +32,7 @@ h1{font-family:Unbounded,Inter,sans-serif;font-weight:600;font-size:clamp(28px,4
 .card .k{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
 .card .v{font-family:Unbounded,Inter;font-weight:600;font-size:30px;letter-spacing:-.02em;margin-top:8px}
 .card .v small{font:500 15px Inter;color:var(--muted);letter-spacing:0}
+.card .nm{font-family:Unbounded,Inter;font-weight:600;font-size:18px;margin-bottom:4px}
 .card .n{color:var(--muted);font-size:12px;margin-top:4px}
 .card.dark{background:var(--ink);color:#fff}.card.dark .k,.card.dark .n,.card.dark small{color:#A9A9A9}
 .card.alert .v{color:var(--overline)}
@@ -45,8 +46,8 @@ h1{font-family:Unbounded,Inter,sans-serif;font-weight:600;font-size:clamp(28px,4
 .ticks i{position:absolute;top:2px;font:500 10px Inter;color:var(--muted);transform:translateX(-50%);font-style:normal}
 .ticks em{position:absolute;top:2px;font:700 10px Inter;color:var(--overline);font-style:normal;letter-spacing:.04em}
 .who{display:flex;flex-direction:column;justify-content:center;padding-right:8px}
-.who b{font-weight:700;font-size:15px}
-.who span{color:var(--muted);font-size:12px;margin-top:2px}
+.who b{font-family:Unbounded,Inter,sans-serif;font-weight:600;font-size:20px;letter-spacing:-.01em}
+.who span{color:var(--muted);font-size:12px;margin-top:4px}
 .lane{position:relative;height:54px;border-radius:10px;overflow:hidden;
   background:linear-gradient(90deg,var(--free) 0 calc(var(--hour)*8),transparent calc(var(--hour)*8))}
 .lane::before{content:"";position:absolute;inset:0;
@@ -95,9 +96,10 @@ footer{color:var(--muted);font-size:12px;margin-top:18px;display:flex;justify-co
 
 <script>
 const SHEET_ID = '1apQWCOT6tkcE5XIBUa8zrGhJ-o-YW8gthVG7MITrTuo';
-const SHEET_TAB = 'Задачі';
-const PEOPLE = ['Арт-директор', 'Копірайтерка'];
-const ROLES = {'Арт-директор':'дизайн, KV, візуал','Копірайтерка':'тексти, концепції'};
+const PEOPLE = [
+  {tab:'Влад', name:'Влад', role:'арт-директор'},
+  {tab:'Катя', name:'Катя', role:'копірайтерка'}
+];
 const DAY_H = 8, MAX_H = 11;
 const TYPE = {'План':'t-plan','Терміново':'t-urgent','Правки':'t-fix','Внутрішнє':'t-int'};
 const DAYS = ['понеділок','вівторок','середа','четвер','пʼятниця'];
@@ -122,19 +124,19 @@ function parseDate(v){
   return null;
 }
 
-async function load(){
-  const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(SHEET_TAB)}&range=A:F&t=${Date.now()}`;
+async function loadTab(p){
+  const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(p.tab)}&range=A:D&t=${Date.now()}`;
   const txt=await (await fetch(url)).text();
   const json=JSON.parse(txt.slice(txt.indexOf('{'),txt.lastIndexOf('}')+1));
   if(json.status==='error') throw new Error(json.errors?.[0]?.detailed_message||'error');
   return json.table.rows.map(r=>{
     const c=r.c||[];
     const val=i=>c[i]?(c[i].v??c[i].f??''):'';
-    return {date:parseDate(val(0)), who:String(val(1)).trim(), task:String(val(2)), client:String(val(3)), type:String(val(4)).trim()||'План', hours:parseFloat(String(val(5)).replace(',','.'))||0};
-  }).filter(r=>r.date && r.who && r.hours>0);
+    return {date:parseDate(val(0)), who:p.name, task:String(val(1)), client:String(val(2)), hours:parseFloat(String(val(3)).replace(',','.'))||0};
+  }).filter(r=>r.date && r.hours>0);
 }
+async function load(){ return (await Promise.all(PEOPLE.map(loadTab))).flat(); }
 
-let UNITS=40;
 function fitHour(){
   const board=document.querySelector('.board');
   const label=innerWidth<=700?110:150;
@@ -147,7 +149,7 @@ function render(){
   const friday=days[4];
   document.getElementById('weeklabel').textContent=`${dm(monday)} — ${dm(friday)}.${friday.getFullYear()}`;
   const inWeek=rows.filter(r=>r.date>=monday && r.date<=friday);
-  const people=[...PEOPLE, ...[...new Set(inWeek.map(r=>r.who))].filter(p=>!PEOPLE.includes(p))];
+  const people=PEOPLE.map(p=>p.name);
 
   // layout: per person-day stack in row order
   const lanes={};
@@ -165,7 +167,7 @@ function render(){
   const cards=document.getElementById('cards');
   cards.innerHTML=people.map(p=>{
     const h=sum(inWeek.filter(r=>r.who===p));
-    return `<div class="card ${h>40?'alert':''}"><div class="k">${esc(p)} · тиждень</div><div class="v">${fmtH(h)} <small>/ 40 год</small></div><div class="n">${h>40?'перевищення на '+fmtH(h-40)+' год':h===0?'ще нічого не внесено':'вільно '+fmtH(40-h)+' год'}</div></div>`;
+    return `<div class="card ${h>40?'alert':''}"><div class="nm">${esc(p)}</div><div class="k">${esc((PEOPLE.find(x=>x.name===p)||{}).role||'')} · тиждень</div><div class="v">${fmtH(h)} <small>/ 40 год</small></div><div class="n">${h>40?'перевищення на '+fmtH(h-40)+' год':h===0?'ще нічого не внесено':'вільно '+fmtH(40-h)+' год'}</div></div>`;
   }).join('')+
   `<div class="card ${overtime>0?'alert':''}"><div class="k">Понаднормово</div><div class="v">${fmtH(overtime)} <small>год</small></div><div class="n">години понад 8 на день, сумарно</div></div>`+'';
 
@@ -183,7 +185,7 @@ function render(){
     return t+'</div>';
   }).join('');
   for(const p of people){
-    html+=`<div class="who"><b>${esc(p)}</b><span>${esc(ROLES[p]||'')}</span></div>`;
+    html+=`<div class="who"><b>${esc(p)}</b><span>${esc((PEOPLE.find(x=>x.name===p)||{}).role||'')}</span></div>`;
     for(const d of days){
       const list=lanes[p+'|'+key(d)]||[];
       const tot=sum(list);
