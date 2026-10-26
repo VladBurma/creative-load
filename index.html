@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Креатив · завантаження</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Unbounded:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ECECEA; --panel:#FFFFFF; --ink:#1E1E1E; --muted:#8A8784; --line:#DCDAD6;
+  --free:#D7D7D7; --over:#E8DCD9; --overline:#D0301F;
+  --plan:#E5392A; --plan2:#C92C1F; --urgent:#262626; --urgent2:#474747;
+  --fix:#F2B01E; --fix2:#F7C755; --int:#5B6B82; --int2:#75849A;
+  --hour:44px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1600px;margin:0 auto;padding:32px 24px 48px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:28px}
+h1{font-family:Unbounded,Inter,sans-serif;font-weight:600;font-size:clamp(28px,4vw,44px);letter-spacing:-.02em;line-height:1}
+.sub{color:var(--muted);margin-top:10px}
+.week{display:flex;align-items:center;gap:8px}
+.btn{border:0;background:var(--panel);color:var(--ink);font:600 14px Inter,sans-serif;height:40px;padding:0 16px;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;text-decoration:none}
+.btn:hover{background:#fff;box-shadow:0 0 0 1px var(--line)}
+.btn.icon{width:40px;padding:0;justify-content:center;font-size:18px}
+.btn.dark{background:var(--ink);color:#fff}
+.btn.dark:hover{background:#000}
+.weeklabel{font:600 15px Inter;min-width:170px;text-align:center}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:28px}
+.card{background:var(--panel);border-radius:18px;padding:18px 20px}
+.card .k{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+.card .v{font-family:Unbounded,Inter;font-weight:600;font-size:30px;letter-spacing:-.02em;margin-top:8px}
+.card .v small{font:500 15px Inter;color:var(--muted);letter-spacing:0}
+.card .n{color:var(--muted);font-size:12px;margin-top:4px}
+.card.dark{background:var(--ink);color:#fff}.card.dark .k,.card.dark .n,.card.dark small{color:#A9A9A9}
+.card.alert .v{color:var(--overline)}
+.board{background:var(--panel);border-radius:22px;padding:22px 22px 18px;overflow-x:auto}
+.grid{display:grid;grid-template-columns:150px repeat(5, calc(var(--hour) * 11));column-gap:14px;min-width:max-content}
+.dayhead{text-align:center;padding-bottom:6px}
+.dayhead b{font-weight:700;font-size:14px}
+.dayhead span{color:var(--muted);margin-left:6px}
+.dayhead.today b{color:var(--plan)}
+.ticks{position:relative;height:18px;border-bottom:1px solid var(--line);margin-bottom:10px}
+.ticks i{position:absolute;top:2px;font:500 10px Inter;color:var(--muted);transform:translateX(-50%);font-style:normal}
+.ticks em{position:absolute;top:2px;font:700 10px Inter;color:var(--overline);font-style:normal;letter-spacing:.04em}
+.who{display:flex;flex-direction:column;justify-content:center;padding-right:8px}
+.who b{font-weight:700;font-size:15px}
+.who span{color:var(--muted);font-size:12px;margin-top:2px}
+.lane{position:relative;height:54px;border-radius:10px;overflow:hidden;
+  background:linear-gradient(90deg,var(--free) 0 calc(var(--hour)*8),var(--over) calc(var(--hour)*8) 100%)}
+.lane::before{content:"";position:absolute;inset:0;
+  background-image:repeating-linear-gradient(90deg,transparent 0 calc(var(--hour) - 1px),rgba(255,255,255,.55) calc(var(--hour) - 1px) var(--hour));pointer-events:none}
+.lane::after{content:"";position:absolute;top:0;bottom:0;left:calc(var(--hour)*8);border-left:2px dashed var(--overline);opacity:.7}
+.bar{position:absolute;top:0;bottom:0;display:flex;align-items:center;padding:0 6px;color:#fff;font-weight:600;font-size:12px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-right:2px solid #fff;cursor:default;z-index:1}
+.bar.t-plan{background:var(--plan)}.bar.t-plan.alt{background:var(--plan2)}
+.bar.t-urgent{background:var(--urgent)}.bar.t-urgent.alt{background:var(--urgent2)}
+.bar.t-fix{background:var(--fix);color:var(--ink)}.bar.t-fix.alt{background:var(--fix2)}
+.bar.t-int{background:var(--int)}.bar.t-int.alt{background:var(--int2)}
+.bar.over{box-shadow:inset 0 -4px 0 rgba(208,48,31,.9)}
+.total{font-size:12px;color:var(--muted);padding:6px 2px 14px}
+.total.full{color:var(--ink);font-weight:700}.total.over{color:var(--overline);font-weight:700}
+.legend{display:flex;flex-wrap:wrap;gap:18px;margin-top:20px;color:var(--ink);font-size:13px}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend i{width:14px;height:14px;border-radius:4px;display:inline-block}
+.tip{position:fixed;pointer-events:none;background:var(--ink);color:#fff;padding:10px 12px;border-radius:10px;font-size:12px;line-height:1.45;max-width:280px;z-index:10;opacity:0;transition:opacity .1s}
+.tip b{font-size:13px}
+.state{padding:40px 0;text-align:center;color:var(--muted)}
+.state b{color:var(--ink)}
+footer{color:var(--muted);font-size:12px;margin-top:18px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+@media (max-width:700px){.wrap{padding:20px 14px 32px}.grid{grid-template-columns:110px repeat(5, calc(var(--hour) * 11))}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Креатив · завантаження</h1>
+      <p class="sub">Смуга = години задачі. Сіре — вільний час, рожеве — понаднормово.</p>
+    </div>
+    <div class="week">
+      <button class="btn icon" id="prev" aria-label="Попередній тиждень">‹</button>
+      <div class="weeklabel" id="weeklabel">—</div>
+      <button class="btn icon" id="next" aria-label="Наступний тиждень">›</button>
+      <button class="btn" id="today">Цей тиждень</button>
+      <a class="btn dark" id="add" target="_blank" rel="noopener">+ Додати години</a>
+    </div>
+  </header>
+
+  <section class="cards" id="cards"></section>
+
+  <section class="board">
+    <div id="board"><div class="state">Завантажую дані…</div></div>
+    <div class="legend">
+      <span><i style="background:var(--plan)"></i>План</span>
+      <span><i style="background:var(--urgent)"></i>Терміново / позапланове</span>
+      <span><i style="background:var(--fix)"></i>Правки</span>
+      <span><i style="background:var(--int)"></i>Внутрішнє</span>
+      <span><i style="background:var(--free)"></i>Вільно</span>
+      <span><i style="background:var(--over)"></i>Понаднормово</span>
+    </div>
+  </section>
+  <footer><span id="updated"></span><span>Норма — 8 год на день, 40 год на тиждень на людину</span></footer>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+const SHEET_ID = '1apQWCOT6tkcE5XIBUa8zrGhJ-o-YW8gthVG7MITrTuo';
+const SHEET_TAB = 'Задачі';
+const PEOPLE = ['Арт-директор', 'Копірайтерка'];
+const ROLES = {'Арт-директор':'дизайн, KV, візуал','Копірайтерка':'тексти, концепції'};
+const DAY_H = 8, MAX_H = 11;
+const TYPE = {'План':'t-plan','Терміново':'t-urgent','Правки':'t-fix','Внутрішнє':'t-int'};
+const DAYS = ['понеділок','вівторок','середа','четвер','пʼятниця'];
+
+document.getElementById('add').href = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`;
+
+let rows = [], monday = mondayOf(new Date());
+
+function mondayOf(d){ const x=new Date(d.getFullYear(),d.getMonth(),d.getDate()); const wd=(x.getDay()+6)%7; x.setDate(x.getDate()-wd); return x; }
+function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+function key(d){ return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+function dm(d){ return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0'); }
+function fmtH(h){ return (Math.round(h*10)/10).toString().replace('.',','); }
+function esc(s){ return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function parseDate(v){
+  if(!v) return null;
+  if(typeof v==='string'){
+    let m=v.match(/^Date\((\d+),(\d+),(\d+)/); if(m) return new Date(+m[1],+m[2],+m[3]);
+    m=v.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})/); if(m) return new Date(+m[3],+m[2]-1,+m[1]);
+    m=v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if(m) return new Date(+m[1],+m[2]-1,+m[3]);
+  }
+  return null;
+}
+
+async function load(){
+  const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(SHEET_TAB)}&range=A:F&t=${Date.now()}`;
+  const txt=await (await fetch(url)).text();
+  const json=JSON.parse(txt.slice(txt.indexOf('{'),txt.lastIndexOf('}')+1));
+  if(json.status==='error') throw new Error(json.errors?.[0]?.detailed_message||'error');
+  return json.table.rows.map(r=>{
+    const c=r.c||[];
+    const val=i=>c[i]?(c[i].v??c[i].f??''):'';
+    return {date:parseDate(val(0)), who:String(val(1)).trim(), task:String(val(2)), client:String(val(3)), type:String(val(4)).trim()||'План', hours:parseFloat(String(val(5)).replace(',','.'))||0};
+  }).filter(r=>r.date && r.who && r.hours>0);
+}
+
+function fitHour(){
+  const board=document.querySelector('.board');
+  const label=innerWidth<=700?110:150;
+  const w=(board.clientWidth-44-label-4*14)/55;
+  document.documentElement.style.setProperty('--hour', Math.max(18, Math.min(60, Math.floor(w*10)/10))+'px');
+}
+addEventListener('resize', fitHour);
+function render(){
+  fitHour();
+  const days=[0,1,2,3,4].map(i=>addDays(monday,i));
+  const friday=days[4];
+  document.getElementById('weeklabel').textContent=`${dm(monday)} — ${dm(friday)}.${friday.getFullYear()}`;
+  const inWeek=rows.filter(r=>r.date>=monday && r.date<=friday);
+  const people=[...PEOPLE, ...[...new Set(inWeek.map(r=>r.who))].filter(p=>!PEOPLE.includes(p))];
+
+  // layout: per person-day stack in row order
+  const lanes={};
+  for(const r of inWeek){
+    const k=r.who+'|'+key(r.date);
+    (lanes[k] ||= []).push(r);
+  }
+  const sum=(arr)=>arr.reduce((a,r)=>a+r.hours,0);
+  let overtime=0;
+  for(const k in lanes){ const t=sum(lanes[k]); if(t>DAY_H) overtime+=t-DAY_H; }
+  const total=sum(inWeek);
+  const urgent=sum(inWeek.filter(r=>r.type==='Терміново'));
+  const internal=sum(inWeek.filter(r=>r.type==='Внутрішнє'));
+
+  const cards=document.getElementById('cards');
+  cards.innerHTML=people.map(p=>{
+    const h=sum(inWeek.filter(r=>r.who===p));
+    return `<div class="card ${h>40?'alert':''}"><div class="k">${esc(p)} · тиждень</div><div class="v">${fmtH(h)} <small>/ 40 год</small></div><div class="n">${h>40?'перевищення на '+fmtH(h-40)+' год':h===0?'ще нічого не внесено':'вільно '+fmtH(40-h)+' год'}</div></div>`;
+  }).join('')+
+  `<div class="card ${overtime>0?'alert':''}"><div class="k">Понаднормово</div><div class="v">${fmtH(overtime)} <small>год</small></div><div class="n">години понад 8 на день, сумарно</div></div>`+
+  `<div class="card"><div class="k">Внутрішнє</div><div class="v">${total?Math.round(internal/total*100):0}<small>%</small></div><div class="n">зустрічі та внутрішні задачі</div></div>`+
+  `<div class="card dark"><div class="k">Позапланове</div><div class="v">${total?Math.round(urgent/total*100):0}<small>%</small></div><div class="n">частка годин «терміново»</div></div>`;
+
+  const todayKey=key(new Date());
+  let html='<div class="grid"><div></div>';
+  html+=days.map((d,i)=>`<div class="dayhead ${key(d)===todayKey?'today':''}"><b>${DAYS[i]}</b><span>${dm(d)}</span></div>`).join('');
+  html+='<div></div>'+days.map(()=>{
+    let t='<div class="ticks">';
+    for(let h=1;h<=DAY_H;h++) t+=`<i style="left:calc(var(--hour)*${h} - var(--hour)/2)">${h}</i>`;
+    t+=`<em style="left:calc(var(--hour)*${DAY_H} + 6px)">ПОНАД</em></div>`;
+    return t;
+  }).join('');
+  for(const p of people){
+    html+=`<div class="who"><b>${esc(p)}</b><span>${esc(ROLES[p]||'')}</span></div>`;
+    for(const d of days){
+      const list=lanes[p+'|'+key(d)]||[];
+      let start=0, html2='';
+      list.forEach((r,i)=>{
+        const s=Math.min(start,MAX_H), w=Math.max(Math.min(r.hours,MAX_H-s),0);
+        const cls=(TYPE[r.type]||'t-plan')+(i%2?' alt':'')+(start+r.hours>DAY_H?' over':'');
+        if(w>0) html2+=`<div class="bar ${cls}" style="left:calc(var(--hour)*${s});width:calc(var(--hour)*${w})" data-t="${esc(r.task)}" data-c="${esc(r.client)}" data-h="${fmtH(r.hours)}" data-y="${esc(r.type)}" data-s="${fmtH(start)}">${esc(r.task)}</div>`;
+        start+=r.hours;
+      });
+      html+=`<div><div class="lane">${html2}</div></div>`;
+    }
+    html+='<div></div>'+days.map(d=>{
+      const t=sum(lanes[p+'|'+key(d)]||[]);
+      return `<div class="total ${t>DAY_H?'over':t===DAY_H?'full':''}">${fmtH(t)} з ${DAY_H} год${t>DAY_H?' · +'+fmtH(t-DAY_H):''}</div>`;
+    }).join('');
+  }
+  html+='</div>';
+  document.getElementById('board').innerHTML=html;
+}
+
+// tooltip
+const tip=document.getElementById('tip');
+document.addEventListener('mousemove',e=>{
+  const b=e.target.closest('.bar');
+  if(!b){tip.style.opacity=0;return;}
+  tip.innerHTML=`<b>${b.dataset.t}</b><br>${b.dataset.c?b.dataset.c+' · ':''}${b.dataset.y}<br>${b.dataset.h} год`;
+  const x=Math.min(e.clientX+14, innerWidth-300);
+  tip.style.left=x+'px'; tip.style.top=(e.clientY+14)+'px'; tip.style.opacity=1;
+});
+
+document.getElementById('prev').onclick=()=>{monday=addDays(monday,-7);render();};
+document.getElementById('next').onclick=()=>{monday=addDays(monday,7);render();};
+document.getElementById('today').onclick=()=>{monday=mondayOf(new Date());render();};
+
+async function refresh(){
+  try{
+    rows=await load();
+    document.getElementById('updated').textContent='Оновлено: '+new Date().toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'});
+    render();
+  }catch(err){
+    document.getElementById('board').innerHTML=`<div class="state"><b>Не вдалося прочитати таблицю.</b><br>Перевір, що в Google-таблиці увімкнено доступ «Усі, хто має посилання → Читач».</div>`;
+    console.error(err);
+  }
+}
+refresh();
+setInterval(refresh, 5*60*1000);
+</script>
+</body>
+</html>
