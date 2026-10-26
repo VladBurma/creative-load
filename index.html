@@ -81,7 +81,6 @@ footer{color:var(--muted);font-size:12px;margin-top:18px;display:flex;justify-co
       <div class="weeklabel" id="weeklabel">—</div>
       <button class="btn icon" id="next" aria-label="Наступний тиждень">›</button>
       <button class="btn" id="today">Цей тиждень</button>
-      <a class="btn dark" id="add" target="_blank" rel="noopener">+ Додати години</a>
     </div>
   </header>
 
@@ -103,7 +102,6 @@ const DAY_H = 8, MAX_H = 11;
 const TYPE = {'План':'t-plan','Терміново':'t-urgent','Правки':'t-fix','Внутрішнє':'t-int'};
 const DAYS = ['понеділок','вівторок','середа','четвер','пʼятниця'];
 
-document.getElementById('add').href = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`;
 
 let rows = [], monday = mondayOf(new Date());
 
