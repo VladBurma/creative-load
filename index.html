@@ -36,7 +36,7 @@ h1{font-family:Unbounded,Inter,sans-serif;font-weight:600;font-size:clamp(28px,4
 .card.dark{background:var(--ink);color:#fff}.card.dark .k,.card.dark .n,.card.dark small{color:#A9A9A9}
 .card.alert .v{color:var(--overline)}
 .board{background:var(--panel);border-radius:22px;padding:22px 22px 18px;overflow-x:auto}
-.grid{display:grid;grid-template-columns:150px repeat(5, calc(var(--hour) * 11));column-gap:14px;min-width:max-content}
+.grid{display:grid;column-gap:14px;min-width:max-content}
 .dayhead{text-align:center;padding-bottom:6px}
 .dayhead b{font-weight:700;font-size:14px}
 .dayhead span{color:var(--muted);margin-left:6px}
@@ -48,10 +48,10 @@ h1{font-family:Unbounded,Inter,sans-serif;font-weight:600;font-size:clamp(28px,4
 .who b{font-weight:700;font-size:15px}
 .who span{color:var(--muted);font-size:12px;margin-top:2px}
 .lane{position:relative;height:54px;border-radius:10px;overflow:hidden;
-  background:var(--free)}
+  background:linear-gradient(90deg,var(--free) 0 calc(var(--hour)*8),transparent calc(var(--hour)*8))}
 .lane::before{content:"";position:absolute;inset:0;
   background-image:repeating-linear-gradient(90deg,transparent 0 calc(var(--hour) - 1px),rgba(255,255,255,.55) calc(var(--hour) - 1px) var(--hour));pointer-events:none}
-.lane::after{content:"";position:absolute;top:0;bottom:0;left:calc(var(--hour)*8);border-left:2px dashed var(--overline);opacity:.7}
+.lane.overday::after{content:"";position:absolute;top:0;bottom:0;left:calc(var(--hour)*8);border-left:2px dashed var(--overline);opacity:.8;z-index:2}
 .bar{position:absolute;top:0;bottom:0;display:flex;align-items:center;padding:0 6px;color:#fff;font-weight:600;font-size:12px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-right:2px solid #fff;cursor:default;z-index:1}
 .bar.t-plan{background:var(--plan)}.bar.t-plan.alt{background:var(--plan2)}
@@ -67,7 +67,7 @@ h1{font-family:Unbounded,Inter,sans-serif;font-weight:600;font-size:clamp(28px,4
 .state{padding:40px 0;text-align:center;color:var(--muted)}
 .state b{color:var(--ink)}
 footer{color:var(--muted);font-size:12px;margin-top:18px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
-@media (max-width:700px){.wrap{padding:20px 14px 32px}.grid{grid-template-columns:110px repeat(5, calc(var(--hour) * 11))}}
+@media (max-width:700px){.wrap{padding:20px 14px 32px}}
 </style>
 </head>
 <body>
@@ -75,7 +75,6 @@ footer{color:var(--muted);font-size:12px;margin-top:18px;display:flex;justify-co
   <header>
     <div>
       <h1>Креатив · завантаження</h1>
-      <p class="sub">Смуга — задача, сіре — вільний час.</p>
     </div>
     <div class="week">
       <button class="btn icon" id="prev" aria-label="Попередній тиждень">‹</button>
@@ -91,7 +90,7 @@ footer{color:var(--muted);font-size:12px;margin-top:18px;display:flex;justify-co
   <section class="board">
     <div id="board"><div class="state">Завантажую дані…</div></div>
   </section>
-  <footer><span id="updated"></span><span>Норма — 8 год на день, 40 год на тиждень на людину</span></footer>
+  <footer><span id="updated"></span></footer>
 </div>
 <div class="tip" id="tip"></div>
 
@@ -137,15 +136,15 @@ async function load(){
   }).filter(r=>r.date && r.who && r.hours>0);
 }
 
+let UNITS=40;
 function fitHour(){
   const board=document.querySelector('.board');
   const label=innerWidth<=700?110:150;
-  const w=(board.clientWidth-44-label-4*14)/55;
+  const w=(board.clientWidth-44-label-4*14)/UNITS;
   document.documentElement.style.setProperty('--hour', Math.max(18, Math.min(60, Math.floor(w*10)/10))+'px');
 }
-addEventListener('resize', fitHour);
+addEventListener('resize', ()=>{ if(rows.length) render(); });
 function render(){
-  fitHour();
   const days=[0,1,2,3,4].map(i=>addDays(monday,i));
   const friday=days[4];
   document.getElementById('weeklabel').textContent=`${dm(monday)} — ${dm(friday)}.${friday.getFullYear()}`;
@@ -170,31 +169,33 @@ function render(){
     const h=sum(inWeek.filter(r=>r.who===p));
     return `<div class="card ${h>40?'alert':''}"><div class="k">${esc(p)} · тиждень</div><div class="v">${fmtH(h)} <small>/ 40 год</small></div><div class="n">${h>40?'перевищення на '+fmtH(h-40)+' год':h===0?'ще нічого не внесено':'вільно '+fmtH(40-h)+' год'}</div></div>`;
   }).join('')+
-  `<div class="card ${overtime>0?'alert':''}"><div class="k">Понаднормово</div><div class="v">${fmtH(overtime)} <small>год</small></div><div class="n">години понад 8 на день, сумарно</div></div>`+
-  `<div class="card"><div class="k">Внутрішнє</div><div class="v">${total?Math.round(internal/total*100):0}<small>%</small></div><div class="n">зустрічі та внутрішні задачі</div></div>`+
-  `<div class="card dark"><div class="k">Позапланове</div><div class="v">${total?Math.round(urgent/total*100):0}<small>%</small></div><div class="n">частка годин «терміново»</div></div>`;
+  `<div class="card ${overtime>0?'alert':''}"><div class="k">Понаднормово</div><div class="v">${fmtH(overtime)} <small>год</small></div><div class="n">години понад 8 на день, сумарно</div></div>`+'';
 
   const todayKey=key(new Date());
-  let html='<div class="grid"><div></div>';
+  // day width = 8h, or the longest lane that day if someone goes over
+  const dayW=days.map(d=>Math.max(DAY_H,...people.map(p=>sum(lanes[p+'|'+key(d)]||[]))));
+  UNITS=dayW.reduce((a,b)=>a+b,0); fitHour();
+  const label=innerWidth<=700?110:150;
+  let html=`<div class="grid" style="grid-template-columns:${label}px ${dayW.map(w=>`calc(var(--hour)*${w})`).join(' ')}"><div></div>`;
   html+=days.map((d,i)=>`<div class="dayhead ${key(d)===todayKey?'today':''}"><b>${DAYS[i]}</b><span>${dm(d)}</span></div>`).join('');
-  html+='<div></div>'+days.map(()=>{
+  html+='<div></div>'+dayW.map(w=>{
     let t='<div class="ticks">';
     for(let h=1;h<=DAY_H;h++) t+=`<i style="left:calc(var(--hour)*${h} - var(--hour)/2)">${h}</i>`;
-    t+=`<em style="left:calc(var(--hour)*${DAY_H} + 6px)">ПОНАД</em></div>`;
-    return t;
+    if(w>DAY_H) t+=`<em style="left:calc(var(--hour)*${DAY_H} + 6px)">ПОНАД</em>`;
+    return t+'</div>';
   }).join('');
   for(const p of people){
     html+=`<div class="who"><b>${esc(p)}</b><span>${esc(ROLES[p]||'')}</span></div>`;
     for(const d of days){
       const list=lanes[p+'|'+key(d)]||[];
+      const tot=sum(list);
       let start=0, html2='';
       list.forEach((r,i)=>{
-        const s=Math.min(start,MAX_H), w=Math.max(Math.min(r.hours,MAX_H-s),0);
-        const cls=(TYPE[r.type]||'t-plan')+(i%2?' alt':'')+(start+r.hours>DAY_H?' over':'');
-        if(w>0) html2+=`<div class="bar ${cls}" style="left:calc(var(--hour)*${s});width:calc(var(--hour)*${w})" data-t="${esc(r.task)}" data-c="${esc(r.client)}" data-h="${fmtH(r.hours)}" data-y="${esc(r.type)}" data-s="${fmtH(start)}">${esc(r.task)}</div>`;
+        const cls=(i%2?'alt':'')+(start+r.hours>DAY_H?' over':'');
+        html2+=`<div class="bar ${cls}" style="left:calc(var(--hour)*${start});width:calc(var(--hour)*${r.hours})" data-t="${esc(r.task)}" data-c="${esc(r.client)}" data-h="${fmtH(r.hours)}" data-y="${esc(r.type)}">${esc(r.task)}</div>`;
         start+=r.hours;
       });
-      html+=`<div><div class="lane">${html2}</div></div>`;
+      html+=`<div><div class="lane ${tot>DAY_H?'overday':''}" style="width:calc(var(--hour)*${Math.max(DAY_H,tot)})">${html2}</div></div>`;
     }
     html+='<div></div>'+days.map(d=>{
       const t=sum(lanes[p+'|'+key(d)]||[]);
@@ -210,7 +211,7 @@ const tip=document.getElementById('tip');
 document.addEventListener('mousemove',e=>{
   const b=e.target.closest('.bar');
   if(!b){tip.style.opacity=0;return;}
-  tip.innerHTML=`<b>${b.dataset.t}</b><br>${b.dataset.c?b.dataset.c+' · ':''}${b.dataset.y}<br>${b.dataset.h} год`;
+  tip.innerHTML=`<b>${b.dataset.t}</b><br>${b.dataset.c?b.dataset.c+'<br>':''}${b.dataset.h} год`;
   const x=Math.min(e.clientX+14, innerWidth-300);
   tip.style.left=x+'px'; tip.style.top=(e.clientY+14)+'px'; tip.style.opacity=1;
 });
