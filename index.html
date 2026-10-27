@@ -33,6 +33,7 @@ h1{font-family:Unbounded,Inter,sans-serif;font-weight:600;font-size:clamp(28px,4
 .card .v{font-family:Unbounded,Inter;font-weight:600;font-size:30px;letter-spacing:-.02em;margin-top:8px}
 .card .v small{font:500 15px Inter;color:var(--muted);letter-spacing:0}
 .card .nm{font-family:Unbounded,Inter;font-weight:600;font-size:18px;margin-bottom:4px}
+.ot{display:inline-flex;align-items:center;vertical-align:middle;margin-left:10px;background:var(--overline);color:#fff;font:700 11px Inter,sans-serif;letter-spacing:.02em;padding:4px 9px;border-radius:999px}
 .card .n{color:var(--muted);font-size:12px;margin-top:4px}
 .card.dark{background:var(--ink);color:#fff}.card.dark .k,.card.dark .n,.card.dark small{color:#A9A9A9}
 .card.alert .v{color:var(--overline)}
@@ -158,18 +159,14 @@ function render(){
     (lanes[k] ||= []).push(r);
   }
   const sum=(arr)=>arr.reduce((a,r)=>a+r.hours,0);
-  let overtime=0;
-  for(const k in lanes){ const t=sum(lanes[k]); if(t>DAY_H) overtime+=t-DAY_H; }
-  const total=sum(inWeek);
-  const urgent=sum(inWeek.filter(r=>r.type==='Терміново'));
-  const internal=sum(inWeek.filter(r=>r.type==='Внутрішнє'));
+  const otOf=p=>days.reduce((a,d)=>{ const t=sum(lanes[p+'|'+key(d)]||[]); return a+(t>DAY_H?t-DAY_H:0); },0);
+  const otPill=p=>{ const o=otOf(p); return o>0?`<span class="ot">+${fmtH(o)} год понад норму</span>`:''; };
 
   const cards=document.getElementById('cards');
   cards.innerHTML=people.map(p=>{
     const h=sum(inWeek.filter(r=>r.who===p));
-    return `<div class="card ${h>40?'alert':''}"><div class="nm">${esc(p)}</div><div class="k">${esc((PEOPLE.find(x=>x.name===p)||{}).role||'')}</div><div class="v">${fmtH(h)} <small>/ 40 год</small></div></div>`;
-  }).join('')+
-  `<div class="card ${overtime>0?'alert':''}"><div class="k">Понаднормово</div><div class="v">${fmtH(overtime)} <small>год</small></div><div class="n">години понад 8 на день, сумарно</div></div>`+'';
+    return `<div class="card ${h>40?'alert':''}"><div class="nm">${esc(p)}${otPill(p)}</div><div class="k">${esc((PEOPLE.find(x=>x.name===p)||{}).role||'')}</div><div class="v">${fmtH(h)} <small>/ 40 год</small></div></div>`;
+  }).join('');
 
   const todayKey=key(new Date());
   // day width = 8h, or the longest lane that day if someone goes over
