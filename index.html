@@ -27,13 +27,22 @@ h1{font-family:Unbounded,Inter,sans-serif;font-weight:600;font-size:clamp(28px,4
 .btn.dark{background:var(--ink);color:#fff}
 .btn.dark:hover{background:#000}
 .weeklabel{font:600 15px Inter;min-width:170px;text-align:center}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:28px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:12px;margin-bottom:28px}
 .card{background:var(--panel);border-radius:18px;padding:18px 20px}
 .card .k{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
 .card .v{font-family:Unbounded,Inter;font-weight:600;font-size:30px;letter-spacing:-.02em;margin-top:8px}
 .card .v small{font:500 15px Inter;color:var(--muted);letter-spacing:0}
 .card .nm{font-family:Unbounded,Inter;font-weight:600;font-size:18px;margin-bottom:4px}
 .ot{display:inline-flex;align-items:center;vertical-align:middle;margin-left:10px;background:var(--overline);color:#fff;font:700 11px Inter,sans-serif;letter-spacing:.02em;padding:4px 9px;border-radius:999px}
+.card.person{display:grid;grid-template-columns:minmax(150px,auto) 1fr;gap:24px;align-items:start}
+.proj{list-style:none;border-left:1px solid var(--line);padding-left:22px;display:flex;flex-direction:column;gap:7px;min-width:0}
+.proj li{display:flex;align-items:baseline;gap:8px;font-size:13px;min-width:0}
+.proj .cn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.proj .dots{flex:1;border-bottom:1px dotted #C9C6C1;transform:translateY(-3px);min-width:12px}
+.proj b{font-weight:700;white-space:nowrap}
+.proj li.int .cn{color:var(--muted)}
+.proj li.empty{color:var(--muted)}
+@media (max-width:560px){.card.person{grid-template-columns:1fr}.proj{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:14px}}
 .card .n{color:var(--muted);font-size:12px;margin-top:4px}
 .card.dark{background:var(--ink);color:#fff}.card.dark .k,.card.dark .n,.card.dark small{color:#A9A9A9}
 .card.alert .v{color:var(--overline)}
@@ -163,9 +172,17 @@ function render(){
   const otPill=p=>{ const o=otOf(p); return o>0?`<span class="ot">+${fmtH(o)} год понад норму</span>`:''; };
 
   const cards=document.getElementById('cards');
+  const INTERNAL='Внутрішні проєкти, зустрічі';
+  const byClient=p=>{
+    const m={};
+    inWeek.filter(r=>r.who===p).forEach(r=>{ const k=r.client.trim()||INTERNAL; m[k]=(m[k]||0)+r.hours; });
+    return Object.entries(m).sort((a,b)=>(a[0]===INTERNAL)-(b[0]===INTERNAL)||b[1]-a[1]);
+  };
   cards.innerHTML=people.map(p=>{
     const h=sum(inWeek.filter(r=>r.who===p));
-    return `<div class="card ${h>40?'alert':''}"><div class="nm">${esc(p)}${otPill(p)}</div><div class="k">${esc((PEOPLE.find(x=>x.name===p)||{}).role||'')}</div><div class="v">${fmtH(h)} <small>/ 40 год</small></div></div>`;
+    const list=byClient(p);
+    const rowsHtml=list.length?list.map(([c,v])=>`<li class="${c===INTERNAL?'int':''}"><span class="cn">${esc(c)}</span><span class="dots"></span><b>${fmtH(v)} год</b></li>`).join(''):'<li class="empty">ще нічого не внесено</li>';
+    return `<div class="card person ${h>40?'alert':''}"><div class="main"><div class="nm">${esc(p)}${otPill(p)}</div><div class="k">${esc((PEOPLE.find(x=>x.name===p)||{}).role||'')}</div><div class="v">${fmtH(h)} <small>/ 40 год</small></div></div><ul class="proj">${rowsHtml}</ul></div>`;
   }).join('');
 
   const todayKey=key(new Date());
@@ -178,7 +195,7 @@ function render(){
   html+='<div></div>'+dayW.map(w=>{
     let t='<div class="ticks">';
     for(let h=1;h<=DAY_H;h++) t+=`<i style="left:calc(var(--hour)*${h} - var(--hour)/2)">${h}</i>`;
-    if(w>DAY_H) t+=`<em style="left:calc(var(--hour)*${DAY_H} + 6px)">ПОНАД</em>`;
+    if(w>DAY_H) t+=`<em style="left:calc(var(--hour)*${DAY_H} + 4px)">${w-DAY_H>=2?'ПОНАД':'+'}</em>`;
     return t+'</div>';
   }).join('');
   for(const p of people){
