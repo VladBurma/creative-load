@@ -39,6 +39,7 @@ h1{font-family:Unbounded,Inter,sans-serif;font-weight:600;font-size:clamp(28px,4
 .proj li{display:flex;align-items:baseline;gap:8px;font-size:13px;min-width:0}
 .proj .cn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .proj .dots{flex:1;border-bottom:1px dotted #C9C6C1;transform:translateY(-3px);min-width:12px}
+.proj .dot{width:9px;height:9px;border-radius:3px;flex:none;align-self:center}
 .proj b{font-weight:700;white-space:nowrap}
 .proj li.int .cn{color:var(--muted)}
 .proj li.empty{color:var(--muted)}
@@ -66,7 +67,6 @@ h1{font-family:Unbounded,Inter,sans-serif;font-weight:600;font-size:clamp(28px,4
 .bar{position:absolute;top:0;bottom:0;display:flex;align-items:center;padding:0 6px;color:#fff;font-weight:600;font-size:12px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:default;z-index:1}
 .bar.t-plan{background:var(--plan)}.bar.t-plan.alt{background:var(--plan2)}
-.bar{background:var(--plan)}.bar.alt{background:var(--plan2)}
 .bar+.bar{box-shadow:inset 2px 0 0 #fff}
 .total{font-size:12px;color:var(--muted);padding:6px 2px 14px}
 .total.full{color:var(--ink);font-weight:700}.total.over{color:var(--overline);font-weight:700}
@@ -147,6 +147,21 @@ async function loadTab(p){
 }
 async function load(){ return (await Promise.all(PEOPLE.map(loadTab))).flat(); }
 
+const INTERNAL_LABEL='Внутрішні проєкти, зустрічі';
+const PALETTE=['#E5392A','#2F5BFF','#0E9F6E','#7B3FE4','#F2A20C','#E0457B','#00A0B4','#8C5A2B','#3D4B66','#B8C21B','#FF7A1A','#5A2D82'];
+const FIXED={'Рідні':'#E5392A','Укртелеком':'#7B3FE4','Лоджитек':'#2F5BFF','ПриватБанк':'#0E9F6E','Adidas':'#1E1E1E','Агромат':'#F2A20C','Havas Red':'#E0457B'};
+const _cc={};
+function clientColor(c){
+  c=(c||'').trim(); if(!c) return '#A8A49F';
+  if(FIXED[c]) return FIXED[c];
+  if(_cc[c]) return _cc[c];
+  let h=0; for(const ch of c) h=(h*31+ch.charCodeAt(0))>>>0;
+  const used=new Set([...Object.values(FIXED),...Object.values(_cc)]);
+  let col=PALETTE[h%PALETTE.length];
+  for(let i=0;i<PALETTE.length && used.has(col);i++) col=PALETTE[(h+i)%PALETTE.length];
+  return _cc[c]=col;
+}
+function inkOn(hex){ const n=parseInt(hex.slice(1),16), r=n>>16, g=n>>8&255, b=n&255; return (0.299*r+0.587*g+0.114*b)>165?'#1E1E1E':'#FFFFFF'; }
 function fitHour(){
   const board=document.querySelector('.board');
   const label=innerWidth<=700?110:150;
@@ -181,7 +196,7 @@ function render(){
   cards.innerHTML=people.map(p=>{
     const h=sum(inWeek.filter(r=>r.who===p));
     const list=byClient(p);
-    const rowsHtml=list.length?list.map(([c,v])=>`<li class="${c===INTERNAL?'int':''}"><span class="cn">${esc(c)}</span><span class="dots"></span><b>${fmtH(v)} год</b></li>`).join(''):'<li class="empty">ще нічого не внесено</li>';
+    const rowsHtml=list.length?list.map(([c,v])=>`<li class="${c===INTERNAL?'int':''}"><i class="dot" style="background:${clientColor(c===INTERNAL?'':c)}"></i><span class="cn">${esc(c)}</span><span class="dots"></span><b>${fmtH(v)} год</b></li>`).join(''):'<li class="empty">ще нічого не внесено</li>';
     return `<div class="card person ${h>40?'alert':''}"><div class="main"><div class="nm">${esc(p)}${otPill(p)}</div><div class="k">${esc((PEOPLE.find(x=>x.name===p)||{}).role||'')}</div><div class="v">${fmtH(h)} <small>/ 40 год</small></div></div><ul class="proj">${rowsHtml}</ul></div>`;
   }).join('');
 
@@ -205,8 +220,8 @@ function render(){
       const tot=sum(list);
       let start=0, html2='';
       list.forEach((r,i)=>{
-        const cls=(i%2?'alt':'')+(start+r.hours>DAY_H?' over':'');
-        html2+=`<div class="bar ${cls}" style="left:calc(var(--hour)*${start});width:calc(var(--hour)*${r.hours})" data-t="${esc(r.task)}" data-c="${esc(r.client)}" data-h="${fmtH(r.hours)}" data-y="${esc(r.type)}">${esc(r.task)}</div>`;
+        const col=clientColor(r.client), label=r.client.trim()||r.task;
+        html2+=`<div class="bar" style="left:calc(var(--hour)*${start});width:calc(var(--hour)*${r.hours});background:${col};color:${inkOn(col)}" data-t="${esc(r.task)}" data-c="${esc(r.client)}" data-h="${fmtH(r.hours)}">${esc(label)}</div>`;
         start+=r.hours;
       });
       html+=`<div><div class="lane ${tot>DAY_H?'overday':''}" style="width:calc(var(--hour)*${Math.max(DAY_H,tot)})">${html2}</div></div>`;
@@ -225,7 +240,7 @@ const tip=document.getElementById('tip');
 document.addEventListener('mousemove',e=>{
   const b=e.target.closest('.bar');
   if(!b){tip.style.opacity=0;return;}
-  tip.innerHTML=`<b>${b.dataset.t}</b><br>${b.dataset.c?b.dataset.c+'<br>':''}${b.dataset.h} год`;
+  tip.innerHTML=`<b>${b.dataset.c||'Внутрішнє'}</b><br>${b.dataset.t}<br>${b.dataset.h} год`;
   const x=Math.min(e.clientX+14, innerWidth-300);
   tip.style.left=x+'px'; tip.style.top=(e.clientY+14)+'px'; tip.style.opacity=1;
 });
