@@ -167,7 +167,7 @@ function render(){
   const cards=document.getElementById('cards');
   cards.innerHTML=people.map(p=>{
     const h=sum(inWeek.filter(r=>r.who===p));
-    return `<div class="card ${h>40?'alert':''}"><div class="nm">${esc(p)}</div><div class="k">${esc((PEOPLE.find(x=>x.name===p)||{}).role||'')} · тиждень</div><div class="v">${fmtH(h)} <small>/ 40 год</small></div><div class="n">${h>40?'перевищення на '+fmtH(h-40)+' год':h===0?'ще нічого не внесено':'вільно '+fmtH(40-h)+' год'}</div></div>`;
+    return `<div class="card ${h>40?'alert':''}"><div class="nm">${esc(p)}</div><div class="k">${esc((PEOPLE.find(x=>x.name===p)||{}).role||'')}</div><div class="v">${fmtH(h)} <small>/ 40 год</small></div></div>`;
   }).join('')+
   `<div class="card ${overtime>0?'alert':''}"><div class="k">Понаднормово</div><div class="v">${fmtH(overtime)} <small>год</small></div><div class="n">години понад 8 на день, сумарно</div></div>`+'';
 
